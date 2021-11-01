@@ -1,0 +1,94 @@
+import  os, sys
+import random
+
+dirpath = os.getcwd()
+sys.path.append(dirpath)
+
+if getattr(sys, "frozen", False):
+    os.chdir(sys._MEIPASS)
+####
+# começo da janela.
+import pygame
+from pygame.locals import *
+from sys import exit
+from player import Player
+from asteroid import Asteroid
+from shot import Shot
+
+pygame.init()
+
+largura = 640
+altura = 480
+x = largura/2
+y = altura/2
+
+tela = pygame.display.set_mode((largura,altura))
+pygame.display.set_caption('Rommel Gurgel')
+relogio = pygame.time.Clock()
+# fim da janela.
+# Objects
+objectGroup = pygame.sprite.Group()
+
+# Bacrground!!
+
+bg = pygame.sprite.Sprite(objectGroup)
+bg.image = pygame.image.load("data/fundo2.jpg")
+bg.image = pygame.transform.scale(bg.image, [840, 480])
+bg.rect = bg.image.get_rect()
+
+shotGroup = pygame.sprite.Group()
+
+asteroidGroup = pygame.sprite.Group()
+
+player = Player(objectGroup)
+
+# music.
+pygame.mixer.music.load("data/battleThemeA.mp3")
+pygame.mixer.music.play(-1)
+pygame.mixer.music.set_volume(0.3)
+
+# Sounds
+shoot = pygame.mixer.Sound("data/Picked Coin Echo 2.wav")
+typys = pygame.mixer.Sound('data/small_item_fall.mp3')
+
+gameLoop = True
+timer = 20
+clock = pygame.time.Clock()
+if __name__ == "__main__":
+    while gameLoop:
+        clock.tick(60)
+
+        for event in pygame.event.get():
+                if event.type == QUIT:
+                    gameLoop = False
+                elif event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_SPACE:
+                        shoot.play()
+                        shoot.set_volume(0.4)
+                        newShot = Shot(objectGroup, shotGroup)
+                        newShot.rect.center = player.rect.center
+                    if event.key == pygame.K_w:
+                        typys.play()
+                        typys.set_volume(0.4)
+                    if event.key == pygame.K_s:
+                        typys.play()
+                        typys.set_volume(0.4)
+
+        objectGroup.update()
+
+        timer += 1
+        if timer > 30:
+            timer = 0
+            if random.random() < 0.3:
+             newAsteroid = Asteroid(objectGroup, asteroidGroup)
+
+        collisions = pygame.sprite.spritecollide(player, asteroidGroup, False, pygame.sprite.collide_mask   )
+        if collisions:
+            gameLoop = False
+
+        hits = pygame.sprite.groupcollide(shotGroup, asteroidGroup, True, True, pygame.sprite.collide_mask)
+
+        tela.fill([0, 0, 0])
+        objectGroup.draw(tela)
+
+        pygame.display.update()
